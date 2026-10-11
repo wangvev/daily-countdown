@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="每日倒计时">
 <title>每日倒计时</title>
+<link rel="manifest" href="./manifest.json">
 <style>
 * { box-sizing:border-box; }
 body {
@@ -166,6 +167,16 @@ document.addEventListener(
   "visibilitychange",updateCountdown
 );
 window.addEventListener("pageshow",updateCountdown);
+</script> 
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(error => {
+        console.error("离线缓存注册失败:", error);
+      });
+  });
+}
 </script>
 </body>
 </html>
