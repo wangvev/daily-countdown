@@ -2,118 +2,171 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101827">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="每日倒计时">
-  <title>每日倒计时</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100dvh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #101827;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont,
-                   "Segoe UI", sans-serif;
-    }
-    .container {
-      width: 90%;
-      max-width: 420px;
-      padding: 36px 24px;
-      text-align: center;
-      background: #1c293d;
-      border-radius: 28px;
-    }
-    h1 { font-size: 25px; }
-    .date { color: #aebdd0; margin-top: 24px; }
-    .number {
-      font-size: clamp(90px, 25vw, 130px);
-      font-weight: 800;
-      margin: 24px 0 0;
-      font-variant-numeric: tabular-nums;
-    }
-    .subtitle { color: #b6c6d9; }
-    .bar {
-      height: 9px;
-      margin: 35px 0 15px;
-      background: #34445b;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress {
-      height: 100%;
-      width: 100%;
-      background: #56b4ff;
-      border-radius: 10px;
-    }
-    .footer { color: #94a7bc; font-size: 14px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="每日倒计时">
+<title>每日倒计时</title>
+<style>
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  min-height:100dvh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#101827;
+  color:white;
+  font-family:-apple-system,BlinkMacSystemFont,
+              "Segoe UI",sans-serif;
+}
+.container {
+  width:90%;
+  max-width:420px;
+  padding:36px 24px;
+  text-align:center;
+  background:#1c293d;
+  border-radius:28px;
+}
+h1 { font-size:25px; }
+.date {
+  color:#b6c6d9;
+  margin-top:24px;
+  font-size:17px;
+}
+.lunar {
+  color:#f3ca85;
+  margin-top:12px;
+  font-size:17px;
+}
+.number {
+  font-size:clamp(90px,25vw,130px);
+  font-weight:800;
+  margin:24px 0 0;
+  font-variant-numeric:tabular-nums;
+}
+.subtitle { color:#b6c6d9; }
+.bar {
+  height:9px;
+  margin:35px 0 15px;
+  background:#34445b;
+  border-radius:10px;
+  overflow:hidden;
+}
+.progress {
+  height:100%;
+  background:#56b4ff;
+  border-radius:10px;
+}
+.footer {
+  color:#94a7bc;
+  font-size:14px;
+}
+</style>
 </head>
 <body>
-  <main class="container">
-    <h1>每日倒计时</h1>
-    <div class="date" id="date"></div>
-    <div class="number" id="number">1000</div>
-    <div class="subtitle">剩余天数</div>
-    <div class="bar">
-      <div class="progress" id="progress"></div>
-    </div>
-    <div class="footer">每天自动减少 1</div>
-  </main>
+<main class="container">
+  <h1>每日倒计时</h1>
+  <div class="date" id="date"></div>
+  <div class="lunar" id="lunar"></div>
+  <div class="number" id="number">1000</div>
+  <div class="subtitle">剩余天数</div>
+  <div class="bar">
+    <div class="progress" id="progress"></div>
+  </div>
+  <div class="footer">每天自动减少 1</div>
+</main>
 
-  <script>
-    const START_DATE = "2026-10-09";
-    const START_NUMBER = 1000;
+<script>
+const START_NUMBER = 1000;
+const START_UTC = Date.UTC(2026, 9, 9);
+const TIMEZONE = "Asia/Shanghai";
 
-    function updateCountdown() {
-      const formatter = new Intl.DateTimeFormat(
-        "en-CA", {
-          timeZone: "Asia/Shanghai",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit"
-        }
-      );
+const dateFormatter = new Intl.DateTimeFormat(
+  "zh-CN", {
+    timeZone:TIMEZONE,
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    weekday:"long"
+  }
+);
 
-      const parts = formatter.formatToParts(new Date());
-      const get = type =>
-        Number(parts.find(p => p.type === type).value);
+const lunarFormatter = new Intl.DateTimeFormat(
+  "zh-CN-u-ca-chinese", {
+    timeZone:TIMEZONE,
+    year:"numeric",
+    month:"long",
+    day:"numeric"
+  }
+);
 
-      const year = get("year");
-      const month = get("month");
-      const day = get("day");
+function updateCountdown() {
+  const now = new Date();
 
-      const todayUTC = Date.UTC(year, month - 1, day);
-      const startUTC = Date.UTC(2026, 9, 9);
-      const days = Math.round(
-        (todayUTC - startUTC) / 86400000
-      );
+  const parts = dateFormatter.formatToParts(now);
+  const get = type => parts.find(
+    part => part.type === type
+  )?.value;
 
-      const remaining = Math.max(
-        0, START_NUMBER - days
-      );
+  const year = Number(get("year"));
+  const month = Number(get("month"));
+  const day = Number(get("day"));
+  const weekday = get("weekday");
 
-      document.getElementById("number").textContent =
-        remaining;
+  const todayUTC = Date.UTC(year,month-1,day);
+  const days = Math.round(
+    (todayUTC-START_UTC)/86400000
+  );
 
-      document.getElementById("date").textContent =
-        `${year}年${month}月${day}日`;
+  const remaining = Math.max(
+    0, START_NUMBER-days
+  );
 
-      document.getElementById("progress").style.width =
-        `${remaining / START_NUMBER * 100}%`;
-    }
+  document.getElementById("date").textContent =
+    `${year}年${month}月${day}日 ${weekday}`;
 
-    updateCountdown();
-    setInterval(updateCountdown, 30000);
-    document.addEventListener(
-      "visibilitychange", updateCountdown
-    );
-    window.addEventListener("pageshow", updateCountdown);
-  </script>
+  const lunarParts = lunarFormatter.formatToParts(now);
+  const lunarGet = type => lunarParts.find(
+    part => part.type === type
+  )?.value;
+
+  const lunarYear = Number(lunarGet("relatedYear"));
+  const lunarMonth = lunarGet("month");
+  const lunarDay = Number(lunarGet("day"));
+
+  const stems = "甲乙丙丁戊己庚辛壬癸";
+  const branches = "子丑寅卯辰巳午未申酉戌亥";
+  const stem = stems[(lunarYear-4)%10];
+  const branch = branches[(lunarYear-4)%12];
+
+  const dayNames = [
+    "初一","初二","初三","初四","初五",
+    "初六","初七","初八","初九","初十",
+    "十一","十二","十三","十四","十五",
+    "十六","十七","十八","十九","二十",
+    "廿一","廿二","廿三","廿四","廿五",
+    "廿六","廿七","廿八","廿九","三十"
+  ];
+
+  document.getElementById("lunar").textContent =
+    `农历 ${stem}${branch}年 ${lunarMonth}${dayNames[lunarDay-1]}`;
+
+  document.getElementById("number").textContent =
+    remaining;
+
+  document.getElementById("progress").style.width =
+    `${remaining/START_NUMBER*100}%`;
+}
+
+updateCountdown();
+setInterval(updateCountdown,30000);
+document.addEventListener(
+  "visibilitychange",updateCountdown
+);
+window.addEventListener("pageshow",updateCountdown);
+</script>
 </body>
 </html>
+
