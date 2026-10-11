@@ -1,0 +1,14 @@
+
+{
+  "id": "/daily-countdown/",
+  "name": "每日倒计时",
+  "short_name": "倒计时",
+  "description": "每日自动减1，显示公历与农历",
+  "start_url": "/daily-countdown/",
+  "scope": "/daily-countdown/",
+  "display": "standalone",
+  "background_color": "#101827",
+  "theme_color": "#101827",
+  "lang": "zh-CN",
+  "icons": []
+}
